@@ -1,6 +1,8 @@
 package mobappdev.example.nback_cimpl
 
 import android.os.Bundle
+import android.os.Parcel
+import android.os.Parcelable
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.fillMaxSize
@@ -8,7 +10,11 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
 import mobappdev.example.nback_cimpl.ui.screens.HomeScreen
+import mobappdev.example.nback_cimpl.ui.screens.GameScreen
+import androidx.navigation.compose.rememberNavController
 import mobappdev.example.nback_cimpl.ui.theme.NBack_CImplTheme
 import mobappdev.example.nback_cimpl.ui.viewmodels.GameVM
 
@@ -26,7 +32,28 @@ import mobappdev.example.nback_cimpl.ui.viewmodels.GameVM
  */
 
 
-class MainActivity : ComponentActivity() {
+class MainActivity() : ComponentActivity(), Parcelable {
+    constructor(parcel: Parcel) : this() {
+    }
+
+    override fun writeToParcel(parcel: Parcel, flags: Int) {
+
+    }
+
+    override fun describeContents(): Int {
+        return 0
+    }
+
+    companion object CREATOR : Parcelable.Creator<MainActivity> {
+        override fun createFromParcel(parcel: Parcel): MainActivity {
+            return MainActivity(parcel)
+        }
+
+        override fun newArray(size: Int): Array<MainActivity?> {
+            return arrayOfNulls(size)
+        }
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
@@ -36,13 +63,24 @@ class MainActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
-                    // Instantiate the viewmodel
-                    val gameViewModel: GameVM = viewModel(
-                        factory = GameVM.Factory
-                    )
+                    val navController = rememberNavController()
+                    val gameViewModel: GameVM = viewModel(factory = GameVM.Factory)
 
-                    // Instantiate the homescreen
-                    HomeScreen(vm = gameViewModel)
+                    NavHost(
+                        navController = navController,
+                        startDestination = "home"
+                    ) {
+                        composable("home") {
+                            HomeScreen(
+                                vm = gameViewModel,
+                                navController = navController // Pass NavController here
+                            )
+                        }
+                        composable("game") {
+                            GameScreen(vm = gameViewModel,
+                                navController = navController)
+                        }
+                    }
                 }
             }
         }
